@@ -1,0 +1,26 @@
+# Arduino IDE Compilation Artifacts
+build/
+bin/
+*.hex
+*.elf
+*.bin
+
+# ESP32 Build Configurations
+sdkconfig
+sdkconfig.old
+**/build_*_*/
+/dependencies.lock
+
+# Local Hardware Exports
+*.step
+*.stp
+*.stl
+*.obj
+
+# Local Environmental Configuration
+secrets.h
+
+# Operating System and Editor Metadata
+.vscode/
+.DS_Store
+Thumbs.db
