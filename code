@@ -1,83 +1,85 @@
-#include <WiFi.h>
-#include "time.h"
-#include <RTClib.h>
-#include <U8g2lib.h>
-#include <Preferences.h>
+#include <WiFi.h> 
+#include "time.h" 
+#include <RTClib.h> 
+#include <U8g2lib.h> 
+#include <Preferences.h> 
 
-const char* ssid = "xyz"; // input your wifi name and password respectively
-const char* password = "xyz";
+const char* ssid = "Your wifi name"; \\ enter your wifi name
+const char* password = "your wifi password"; \\ enter your wifi password
 
-// India IST Offset
-const long gmtOffset_sec = 19800;
-const int daylightOffset_sec = 0;
-const char* ntpServer = "pool.ntp.org";
+// India IST Offset 
+const long gmtOffset_sec = 19800; 
+const int daylightOffset_sec = 0; 
+const char* ntpServer = "pool.ntp.org"; 
 
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-RTC_DS3231 rtc;
-Preferences prefs;
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE); 
+RTC_DS3231 rtc; 
+Preferences prefs; 
 
-void setup() {
-  Wire.begin(8, 9);
-  u8g2.begin();
-  rtc.begin();
-
-  DateTime now = rtc.now();
+void setup() { 
+  Wire.begin(8, 9); 
+  u8g2.begin(); 
+  rtc.begin(); 
   prefs.begin("clock-app", false); 
   
-  // Get the last day we successfully synced
-  int lastSyncDay = prefs.getInt("lastDay", 0);
-
-  // LOGIC: Sync if (It's past 6 AM AND we haven't synced today) OR (RTC lost power)
-  if ((now.hour() >= 6 && now.day() != lastSyncDay) || rtc.lostPower()) {
-    
-    // Background sync
-    u8g2.clearBuffer();
+  // Read permanent flag to check if it has ever synced before
+  bool firstBoot = prefs.getBool("firstBoot", true); 
+  
+  // LOGIC: Only ever run Wi-Fi setup if it's the absolute first boot after an upload
+  if (firstBoot) { 
+    u8g2.clearBuffer(); 
     u8g2.sendBuffer(); 
-
-    WiFi.begin(ssid, password);
-    int retry = 0;
-    while (WiFi.status() != WL_CONNECTED && retry < 15) {
-      delay(500);
-      retry++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-      struct tm timeinfo;
-      if (getLocalTime(&timeinfo)) {
-        rtc.adjust(DateTime(timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday, 
-                            timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec));
+    WiFi.begin(ssid, password); 
+    int retry = 0; 
+    while (WiFi.status() != WL_CONNECTED && retry < 30) { 
+      delay(500); 
+      retry++; 
+    } 
+    if (WiFi.status() == WL_CONNECTED) { 
+      configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); 
+      struct tm timeinfo; 
+      if (getLocalTime(&timeinfo)) { 
+        rtc.adjust(DateTime(timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec)); 
         
-        // Mark today as synced
-        prefs.putInt("lastDay", timeinfo.tm_mday);
-      }
-      WiFi.disconnect(true);
-      WiFi.mode(WIFI_OFF);
-    }
-  }
+        // Lock this flag permanently in flash memory so it never triggers again
+        prefs.putBool("firstBoot", false); 
+      } 
+    } 
+    WiFi.disconnect(true); 
+    WiFi.mode(WIFI_OFF); 
+  } 
   prefs.end(); 
-}
+} 
 
-void loop() {
-  DateTime now = rtc.now();
-  if (now.year() > 2100 || now.year() < 2020) return;
-
-  char timeBuf[16];
-  int h12 = now.hour() % 12;
-  if (h12 == 0) h12 = 12;
-  const char* ampm = (now.hour() < 12) ? "AM" : "PM";
-
-  u8g2.clearBuffer();
+void loop() { 
+  DateTime now = rtc.now(); 
+  if (now.year() > 2100 || now.year() < 2020) return; 
   
-  // Time
-  u8g2.setFont(u8g2_font_logisoso24_tn);
-  sprintf(timeBuf, "%d:%02d:%02d", h12, now.minute(), now.second());
-  u8g2.drawStr((128 - u8g2.getStrWidth(timeBuf)) / 2, 35, timeBuf);
-
-  // AM/PM
-  u8g2.setFont(u8g2_font_6x10_tf);
-  u8g2.drawStr((128 - u8g2.getStrWidth(ampm)) / 2, 55, ampm);
+  char timeBuf[16]; 
+  int h12 = now.hour() % 12; 
+  if (h12 == 0) h12 = 12; 
+  const char* ampm = (now.hour() < 12) ? "AM" : "PM"; 
   
-  u8g2.sendBuffer();
-  delay(1000);
+  // Text buffers for formatting the calendar details
+  char dateBuf[32];
+  const char* daysOfWeek[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+  const char* monthsOfYear[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+  
+  u8g2.clearBuffer(); 
+  
+  // Time 
+  u8g2.setFont(u8g2_font_logisoso24_tn); 
+  sprintf(timeBuf, "%d:%02d:%02d", h12, now.minute(), now.second()); 
+  u8g2.drawStr((128 - u8g2.getStrWidth(timeBuf)) / 2, 32, timeBuf); 
+  
+  // AM/PM 
+  u8g2.setFont(u8g2_font_6x10_tf); 
+  u8g2.drawStr((128 - u8g2.getStrWidth(ampm)) / 2, 45, ampm); 
+  
+  // Full Date Row: Format as "Day, DD Month YYYY" (e.g., "Mon, 15 May 2026")
+  sprintf(dateBuf, "%s, %02d %s %d", daysOfWeek[now.dayOfTheWeek()], now.day(), monthsOfYear[now.month() - 1], now.year());
+  u8g2.drawStr((128 - u8g2.getStrWidth(dateBuf)) / 2, 58, dateBuf);
+  
+  u8g2.sendBuffer(); 
+  delay(1000); 
 }
