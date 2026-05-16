@@ -23,3 +23,27 @@ M3 bolts and nuts
 * it should be noted that the code is not made by me, this was my first time working with a screen and wifi and rtc so it was too complex for me to reliably create, after some experimenantion with the codes seperatly like displaying hello world, connecting my esp3 to the wifi and some failures, i decided that i couldent completely create the code myself.
 
 however the case and cover, the wiring and fitting and the general selection of hardware aswell as the iterations and core of the poject was all done by me.
+
+
+an explanation to the code
+
+in my case the code will begin by starting the components
+
+then it will check for a flag called firstboot
+
+if it is infact powering on for the first time then it will connect to the wifi
+and then go to a server called (pool.ntp.org) , sets to the current ist
+
+then it inputs that into the RTC
+
+updates the firstboot flag to false and saves it permanently and disables the wifi
+
+when it boots agian it will read the false firstbott and skip the wifi part entirly
+
+this was made in arduino ide.
+
+it also converts the 24 hour clock into 12 hour after gathering the data from the rtc
+calculates if its AM or PM 
+
+and uses a text string to print the date
+
