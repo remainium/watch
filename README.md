@@ -48,10 +48,11 @@ calculates if its AM or PM
 
 and uses a text string to print the date
 
-Name of components	Amount 	 price($)	sources
-E-paper 2.1 inch display 	1	19.8	Amazon
-Tactile buttons	1(10)	1.05	Amazon
- RTC (DS3231)	1	3.13	amazon
- SD card reader	1	1.04	Amazon
-SD card	1	4.17	Amazon
-on/off switch	1(10)	0.57	Amazon
+| Name of components        | Amount  |  price($) | sources |
+|---------------------------|---------|-----------|---------|
+| E-paper 2.1 inch display  | 1       | 19.8      | Amazon  |
+| Tactile buttons           | 1(10)   | 1.05      | Amazon  |
+|  RTC (DS3231)             | 1       | 3.13      | amazon  |
+|  SD card reader           | 1       | 1.04      | Amazon  |
+| SD card                   | 1       | 4.17      | Amazon  |
+| on/off switch             | 1(10)   | 0.57      | Amazon  |
